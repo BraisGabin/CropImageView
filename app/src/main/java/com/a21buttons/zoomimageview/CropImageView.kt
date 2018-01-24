@@ -3,6 +3,7 @@ package com.a21buttons.zoomimageview
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.support.v7.widget.AppCompatImageView
 import android.util.AttributeSet
@@ -11,6 +12,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 class CropImageView : AppCompatImageView {
@@ -24,10 +26,24 @@ class CropImageView : AppCompatImageView {
     private val gestureDetector = GestureDetector(context, MyOnGestureListener())
     private var drawableWith: Int? = null
     private var drawableHeight: Int? = null
+    private val viewportPaint = Paint().apply {
+        color = 0x80ff0000.toInt()
+    }
 
     init {
         super.setScaleType(ScaleType.MATRIX)
     }
+
+    var aspectRatio: ClosedFloatingPointRange<Float> = 0.8f.rangeTo(1f)
+        set(value) {
+            if (value.isEmpty()) {
+                throw IllegalArgumentException("The range can't be empty")
+            }
+            if (field != value) {
+                field = value
+                invalidate()
+            }
+        }
 
     override fun setScaleType(scaleType: ScaleType) {
         // no-op
@@ -45,6 +61,25 @@ class CropImageView : AppCompatImageView {
         val superResult = super.onTouchEvent(event)
 
         return scaleGestureResult || gestureResult || superResult
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        viewportSize(_viewportSizes)
+        val viewportWidth = _viewportSizes[0]
+        val viewportHeight = _viewportSizes[1]
+        val width: Float = width.toFloat()
+        val height: Float = height.toFloat()
+
+        val top: Float = (height - viewportHeight) / 2f
+        val bottom: Float = height - top
+        val left: Float = (width - viewportWidth) / 2f
+        val right: Float = width - left
+
+        canvas.drawRect(0f, top, left, bottom, viewportPaint) // left
+        canvas.drawRect(0f, 0f, width, top, viewportPaint) // top
+        canvas.drawRect(right, top, width, bottom, viewportPaint) // right
+        canvas.drawRect(0f, bottom, width, height, viewportPaint) // bottom
     }
 
     private inner class MyOnScaleGestureListener : ScaleGestureDetector.OnScaleGestureListener {
@@ -91,6 +126,7 @@ class CropImageView : AppCompatImageView {
 
     private val _matrix = Matrix()
     private val _values: FloatArray = FloatArray(9)
+    private val _viewportSizes: IntArray = IntArray(2)
     private fun applyMatrixTransformation(action: (Matrix) -> Unit) {
         val dWidth = drawableWith
         val dHeight = drawableHeight
@@ -109,12 +145,18 @@ class CropImageView : AppCompatImageView {
         val vWidth = width - paddingLeft - paddingRight
         val vHeight = height - paddingTop - paddingBottom
 
-        scale = max(min(vWidth / dWidth.toFloat(), vHeight / dHeight.toFloat()), scale)
+        viewportSize(_viewportSizes)
+        val viewportWidth = _viewportSizes[0]
+        val viewportHeight = _viewportSizes[1]
 
-        tx = calculateTranslation(tx, scale, dWidth, vWidth)
-        ty = calculateTranslation(ty, scale, dHeight, vHeight)
+        scale = max(scale, max(aspectRatio.start * viewportHeight / dWidth, viewportWidth / (aspectRatio.endInclusive * dHeight)))
+        scale = max(scale, min(viewportWidth / dWidth.toFloat(), viewportHeight / dHeight.toFloat()))
 
-        // TODO get the visible rectangle
+        val dScaledWidth = dWidth * scale
+        val dScaledHeight = dHeight * scale
+
+        tx = calculateTranslation(tx, dScaledWidth, vWidth, viewportWidth)
+        ty = calculateTranslation(ty, dScaledHeight, vHeight, viewportHeight)
 
         _values[0] = scale
         _values[1] = 0f
@@ -128,12 +170,43 @@ class CropImageView : AppCompatImageView {
         imageMatrix = _matrix
     }
 
-    private inline fun calculateTranslation(translation: Float, scale: Float, dSize: Int, vSize: Int): Float {
-        val dScaledSize = dSize * scale
-        return if (dScaledSize < vSize) {
+    private fun viewportSize(values: IntArray) {
+        val vWidth = width - paddingLeft - paddingRight
+        val vHeight = height - paddingTop - paddingBottom
+
+        val vAspectRatio = vWidth / vHeight.toFloat()
+        val viewportWidth: Int
+        val viewportHeight: Int
+        if (vAspectRatio !in aspectRatio) {
+            val viewportAspectRatio = if (aspectRatio.endInclusive < 1f) {
+                aspectRatio.endInclusive
+            } else if (aspectRatio.start > 1f) {
+                aspectRatio.start
+            } else {
+                1f
+            }
+
+            if (viewportAspectRatio > vAspectRatio) {
+                viewportWidth = vWidth
+                viewportHeight = (viewportWidth * viewportAspectRatio).roundToInt()
+            } else {
+                viewportHeight = vHeight
+                viewportWidth = (viewportHeight / viewportAspectRatio).roundToInt()
+            }
+        } else {
+            viewportWidth = vWidth
+            viewportHeight = vHeight
+        }
+        values[0] = viewportWidth
+        values[1] = viewportHeight
+    }
+
+    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Int, viewportSize: Int): Float {
+        return if (dScaledSize < viewportSize) {
             (vSize - dScaledSize) / 2f
         } else {
-            max(min(0f, translation), vSize - dScaledSize)
+            val a = (vSize - viewportSize) / 2f
+            max(min(a, translation), vSize - dScaledSize - a)
         }
     }
 }
