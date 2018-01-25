@@ -1,9 +1,12 @@
 package com.a21buttons.zoomimageview
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.support.v7.widget.AppCompatImageView
 import android.util.AttributeSet
@@ -209,4 +212,46 @@ class CropImageView : AppCompatImageView {
             max(min(a, translation), vSize - dScaledSize - a)
         }
     }
+
+    fun getCoppedBitmap(): () -> Bitmap? {
+        val rect = croppedRect()
+        return if (rect == null) {
+            { null }
+        } else {
+            val d = drawable
+            {
+                when (d) {
+                    is BitmapDrawable -> d.bitmap.crop(rect)
+                    else -> throw RuntimeException("Not supported drawable")
+                }
+            }
+        }
+    }
+
+    private fun croppedRect(): Rect? {
+        val dWidth = drawableWith?.toFloat()
+        val dHeight = drawableHeight?.toFloat()
+        if (dWidth == null || dHeight == null) {
+            return null
+        }
+        imageMatrix.getValues(_values)
+        val scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
+        viewportSize(_viewportSizes)
+
+        val left = -min(0f, (_values[2] - (width - _viewportSizes[0]) / 2) / scale)
+        val top = -min(0f, (_values[5] - (height - _viewportSizes[1]) / 2) / scale)
+        val right = left + min(dWidth, _viewportSizes[0] / scale)
+        val bottom = top + min(dHeight, _viewportSizes[1] / scale)
+
+        val x = max(0f, left).roundToInt()
+        val y = max(0f, top).roundToInt()
+        val x2 = min(dWidth, right).roundToInt()
+        val y2 = min(dHeight, bottom).roundToInt()
+
+        return Rect(x, y, x2, y2)
+    }
+}
+
+private fun Bitmap.crop(rect: Rect): Bitmap {
+    return Bitmap.createBitmap(this, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
 }
