@@ -161,14 +161,8 @@ class CropImageView : AppCompatImageView {
         tx = calculateTranslation(tx, dScaledWidth, vWidth, viewportWidth)
         ty = calculateTranslation(ty, dScaledHeight, vHeight, viewportHeight)
 
-        _values[0] = scale
-        _values[1] = 0f
-        _values[2] = tx
-        _values[3] = 0f
-        _values[4] = scale
-        _values[5] = ty
-
-        _matrix.setValues(_values)
+        _matrix.setScale(scale, scale)
+        _matrix.postTranslate(tx, ty)
 
         imageMatrix = _matrix
     }
