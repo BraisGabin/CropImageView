@@ -29,6 +29,9 @@ class CropImageView : AppCompatImageView {
     private val gestureDetector = GestureDetector(context, MyOnGestureListener())
     private var drawableWidth: Int? = null
     private var drawableHeight: Int? = null
+    private var viewportWidth: Int? = null
+    private var viewportHeight: Int? = null
+
     private val viewportPaint = Paint().apply {
         color = 0x80ff0000.toInt()
     }
@@ -43,6 +46,7 @@ class CropImageView : AppCompatImageView {
                 throw IllegalArgumentException("The range can't be empty")
             }
             if (field != value) {
+                calculateViewportSize()
                 field = value
                 invalidate()
             }
@@ -68,9 +72,8 @@ class CropImageView : AppCompatImageView {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        viewportSize(_viewportSizes)
-        val viewportWidth = _viewportSizes[0]
-        val viewportHeight = _viewportSizes[1]
+        val viewportWidth = viewportWidth!!
+        val viewportHeight = viewportHeight!!
         val width: Float = width.toFloat()
         val height: Float = height.toFloat()
 
@@ -83,6 +86,10 @@ class CropImageView : AppCompatImageView {
         canvas.drawRect(0f, 0f, width, top, viewportPaint) // top
         canvas.drawRect(right, top, width, bottom, viewportPaint) // right
         canvas.drawRect(0f, bottom, width, height, viewportPaint) // bottom
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        calculateViewportSize()
     }
 
     private inner class MyOnScaleGestureListener : ScaleGestureDetector.OnScaleGestureListener {
@@ -129,11 +136,12 @@ class CropImageView : AppCompatImageView {
 
     private val _matrix = Matrix()
     private val _values: FloatArray = FloatArray(9)
-    private val _viewportSizes: IntArray = IntArray(2)
     private fun applyMatrixTransformation(action: (Matrix) -> Unit) {
-        val dWidth = drawableWidth
-        val dHeight = drawableHeight
-        if (dWidth == null || dHeight == null) {
+        val dWidth = drawableWidth?.toFloat()
+        val dHeight = drawableHeight?.toFloat()
+        val viewportWidth = viewportWidth?.toFloat()
+        val viewportHeight = viewportHeight?.toFloat()
+        if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return
         }
         _matrix.set(imageMatrix)
@@ -147,10 +155,6 @@ class CropImageView : AppCompatImageView {
 
         val vWidth = width - paddingLeft - paddingRight
         val vHeight = height - paddingTop - paddingBottom
-
-        viewportSize(_viewportSizes)
-        val viewportWidth = _viewportSizes[0]
-        val viewportHeight = _viewportSizes[1]
 
         scale = max(scale, max(aspectRatio.start * viewportHeight / dWidth, viewportWidth / (aspectRatio.endInclusive * dHeight)))
         scale = max(scale, min(viewportWidth / dWidth.toFloat(), viewportHeight / dHeight.toFloat()))
@@ -167,7 +171,7 @@ class CropImageView : AppCompatImageView {
         imageMatrix = _matrix
     }
 
-    private fun viewportSize(values: IntArray) {
+    private fun calculateViewportSize() {
         val vWidth = width - paddingLeft - paddingRight
         val vHeight = height - paddingTop - paddingBottom
 
@@ -194,11 +198,11 @@ class CropImageView : AppCompatImageView {
             viewportWidth = vWidth
             viewportHeight = vHeight
         }
-        values[0] = viewportWidth
-        values[1] = viewportHeight
+        this.viewportWidth = viewportWidth
+        this.viewportHeight = viewportHeight
     }
 
-    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Int, viewportSize: Int): Float {
+    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Int, viewportSize: Float): Float {
         return if (dScaledSize < viewportSize) {
             (vSize - dScaledSize) / 2f
         } else {
@@ -225,17 +229,18 @@ class CropImageView : AppCompatImageView {
     private fun croppedRect(): Rect? {
         val dWidth = drawableWidth?.toFloat()
         val dHeight = drawableHeight?.toFloat()
-        if (dWidth == null || dHeight == null) {
+        val viewportWidth = viewportWidth?.toFloat()
+        val viewportHeight = viewportHeight?.toFloat()
+        if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return null
         }
         imageMatrix.getValues(_values)
         val scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
-        viewportSize(_viewportSizes)
 
-        val left = -min(0f, (_values[2] - (width - _viewportSizes[0]) / 2) / scale)
-        val top = -min(0f, (_values[5] - (height - _viewportSizes[1]) / 2) / scale)
-        val right = left + min(dWidth, _viewportSizes[0] / scale)
-        val bottom = top + min(dHeight, _viewportSizes[1] / scale)
+        val left = -min(0f, (_values[2] - (width - viewportWidth) / 2) / scale)
+        val top = -min(0f, (_values[5] - (height - viewportHeight) / 2) / scale)
+        val right = left + min(dWidth, viewportWidth / scale)
+        val bottom = top + min(dHeight, viewportHeight / scale)
 
         val x = max(0f, left).roundToInt()
         val y = max(0f, top).roundToInt()
