@@ -12,8 +12,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<View>(R.id.button).setOnClickListener {
-            val bitmap = findViewById<CropImageView>(R.id.imageView).getCoppedBitmap()()
+        val imageView: CropImageView = findViewById(R.id.imageView)
+        findViewById<View>(R.id.rotate).setOnClickListener {
+            imageView.rotate(90f)
+        }
+
+        findViewById<View>(R.id.crop).setOnClickListener {
+            val bitmap = imageView.getCoppedBitmap()()
             if (bitmap != null) {
                 val imageView = ImageView(this)
                 imageView.setImageBitmap(bitmap)

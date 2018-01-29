@@ -10,8 +10,16 @@
         android:src="@drawable/nature" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/rotate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end" />
+        android:layout_gravity="bottom|start"
+        android:text="rotate" />
+
+    <Button
+        android:id="@+id/crop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:text="crop" />
 </merge>

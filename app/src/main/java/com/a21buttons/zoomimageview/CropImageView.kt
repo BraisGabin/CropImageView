@@ -13,6 +13,9 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import kotlin.math.PI
+import kotlin.math.acos
+import kotlin.math.asin
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -92,6 +95,14 @@ class CropImageView : AppCompatImageView {
         calculateViewportSize()
     }
 
+    fun rotate(degrees: Float) {
+        val vWidth = width - paddingLeft - paddingRight
+        val vHeight = height - paddingTop - paddingBottom
+        applyMatrixTransformation {
+            it.postRotate(degrees, vWidth / 2f, vHeight / 2f)
+        }
+    }
+
     private inner class MyOnScaleGestureListener : ScaleGestureDetector.OnScaleGestureListener {
         override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
             return true
@@ -141,6 +152,8 @@ class CropImageView : AppCompatImageView {
         val dHeight = drawableHeight?.toFloat()
         val viewportWidth = viewportWidth?.toFloat()
         val viewportHeight = viewportHeight?.toFloat()
+        val vWidth = (width - paddingLeft - paddingRight).toFloat()
+        val vHeight = (height - paddingTop - paddingBottom).toFloat()
         if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return
         }
@@ -149,12 +162,17 @@ class CropImageView : AppCompatImageView {
         action(_matrix)
 
         _matrix.getValues(_values)
+        var scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
+        val acosTheta = acos(_values[0] / scale)
+        val theta = if (asin(_values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
+        val degrees = Math.toDegrees(theta.toDouble()).toFloat()
+        val px = vWidth / 2f
+        val py = vHeight / 2f
+        _matrix.postRotate(-degrees, px, py)
+
+        _matrix.getValues(_values)
         var tx = _values[2]
         var ty = _values[5]
-        var scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
-
-        val vWidth = width - paddingLeft - paddingRight
-        val vHeight = height - paddingTop - paddingBottom
 
         scale = max(scale, max(aspectRatio.start * viewportHeight / dWidth, viewportWidth / (aspectRatio.endInclusive * dHeight)))
         scale = max(scale, min(viewportWidth / dWidth.toFloat(), viewportHeight / dHeight.toFloat()))
@@ -167,6 +185,7 @@ class CropImageView : AppCompatImageView {
 
         _matrix.setScale(scale, scale)
         _matrix.postTranslate(tx, ty)
+        _matrix.postRotate(degrees, px, py)
 
         imageMatrix = _matrix
     }
@@ -202,7 +221,7 @@ class CropImageView : AppCompatImageView {
         this.viewportHeight = viewportHeight
     }
 
-    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Int, viewportSize: Float): Float {
+    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Float, viewportSize: Float): Float {
         return if (dScaledSize < viewportSize) {
             (vSize - dScaledSize) / 2f
         } else {
