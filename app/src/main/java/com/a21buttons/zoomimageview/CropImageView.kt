@@ -27,7 +27,7 @@ class CropImageView : AppCompatImageView {
 
     private val scaleGestureDetector = ScaleGestureDetector(context, MyOnScaleGestureListener())
     private val gestureDetector = GestureDetector(context, MyOnGestureListener())
-    private var drawableWith: Int? = null
+    private var drawableWidth: Int? = null
     private var drawableHeight: Int? = null
     private val viewportPaint = Paint().apply {
         color = 0x80ff0000.toInt()
@@ -54,7 +54,7 @@ class CropImageView : AppCompatImageView {
 
     override fun setImageDrawable(drawable: Drawable?) {
         super.setImageDrawable(drawable)
-        drawableWith = drawable?.intrinsicWidth
+        drawableWidth = drawable?.intrinsicWidth
         drawableHeight = drawable?.intrinsicHeight
     }
 
@@ -131,7 +131,7 @@ class CropImageView : AppCompatImageView {
     private val _values: FloatArray = FloatArray(9)
     private val _viewportSizes: IntArray = IntArray(2)
     private fun applyMatrixTransformation(action: (Matrix) -> Unit) {
-        val dWidth = drawableWith
+        val dWidth = drawableWidth
         val dHeight = drawableHeight
         if (dWidth == null || dHeight == null) {
             return
@@ -223,7 +223,7 @@ class CropImageView : AppCompatImageView {
     }
 
     private fun croppedRect(): Rect? {
-        val dWidth = drawableWith?.toFloat()
+        val dWidth = drawableWidth?.toFloat()
         val dHeight = drawableHeight?.toFloat()
         if (dWidth == null || dHeight == null) {
             return null
