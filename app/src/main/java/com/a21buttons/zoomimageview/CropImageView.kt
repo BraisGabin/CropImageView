@@ -174,8 +174,7 @@ class CropImageView : AppCompatImageView {
         var tx = _values[2]
         var ty = _values[5]
 
-        scale = max(scale, max(aspectRatio.start * viewportHeight / dWidth, viewportWidth / (aspectRatio.endInclusive * dHeight)))
-        scale = max(scale, min(viewportWidth / dWidth.toFloat(), viewportHeight / dHeight.toFloat()))
+        scale = checkMinScale(scale, aspectRatio, dWidth, dHeight, viewportWidth, viewportHeight)
 
         val dScaledWidth = dWidth * scale
         val dScaledHeight = dHeight * scale
@@ -267,6 +266,25 @@ class CropImageView : AppCompatImageView {
         val y2 = min(dHeight, bottom).roundToInt()
 
         return Rect(x, y, x2, y2)
+    }
+
+    companion object {
+        private inline fun checkMinScale(scale: Float,
+                                         aspectRatio: ClosedFloatingPointRange<Float>,
+                                         dWidth: Float,
+                                         dHeight: Float,
+                                         viewportWidth: Float,
+                                         viewportHeight: Float): Float {
+            return max(
+                    max(
+                            scale,
+                            max(
+                                    aspectRatio.start * viewportHeight / dWidth,
+                                    viewportWidth / (aspectRatio.endInclusive * dHeight))),
+                    min(
+                            viewportWidth / dWidth,
+                            viewportHeight / dHeight))
+        }
     }
 }
 
