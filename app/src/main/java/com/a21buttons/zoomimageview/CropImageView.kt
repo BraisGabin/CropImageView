@@ -165,7 +165,7 @@ class CropImageView : AppCompatImageView {
         var scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
         val acosTheta = acos(_values[0] / scale)
         val theta = if (asin(_values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
-        val degrees = Math.toDegrees(theta.toDouble()).toFloat()
+        val degrees = theta.toDegrees()
         val px = vWidth / 2f
         val py = vHeight / 2f
         _matrix.postRotate(-degrees, px, py)
@@ -301,6 +301,10 @@ class CropImageView : AppCompatImageView {
             return (angle > angle45 && angle < 3 * angle45) || (angle > 5 * angle45 && angle < 7 * angle45)
         }
     }
+}
+
+private fun Float.toDegrees(): Float {
+    return Math.toDegrees(this.toDouble()).toFloat()
 }
 
 private fun Bitmap.crop(rect: Rect): Bitmap {
