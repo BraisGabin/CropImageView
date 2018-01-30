@@ -24,9 +24,13 @@ import kotlin.math.sqrt
 class CropImageView : AppCompatImageView {
     constructor(context: Context) : super(context)
 
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+        init(attrs)
+    }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+        init(attrs)
+    }
 
     private val scaleGestureDetector = ScaleGestureDetector(context, MyOnScaleGestureListener())
     private val gestureDetector = GestureDetector(context, MyOnGestureListener())
@@ -35,12 +39,22 @@ class CropImageView : AppCompatImageView {
     private var viewportWidth: Int? = null
     private var viewportHeight: Int? = null
 
-    private val viewportPaint = Paint().apply {
-        color = 0x80ff0000.toInt()
-    }
+    private val viewportPaint: Paint
 
     init {
         super.setScaleType(ScaleType.MATRIX)
+        viewportPaint = Paint().apply {
+            color = 0x80000000.toInt()
+        }
+    }
+
+    private fun init(attrs: AttributeSet) {
+        val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.CropImageView, 0, 0)
+        try {
+            viewportPaint.color = typedArray.getColor(R.styleable.CropImageView_viewportOverlayColor, 0x80000000.toInt())
+        } finally {
+            typedArray.recycle()
+        }
     }
 
     var aspectRatio: ClosedFloatingPointRange<Float> = 0.8f.rangeTo(1f)
@@ -51,6 +65,15 @@ class CropImageView : AppCompatImageView {
             if (field != value) {
                 calculateViewportSize()
                 field = value
+                invalidate()
+            }
+        }
+
+    var viewportOverlayColor: Int
+        get() = viewportPaint.color
+        set(value) {
+            if (viewportPaint.color != value) {
+                viewportPaint.color = value
                 invalidate()
             }
         }
