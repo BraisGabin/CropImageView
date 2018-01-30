@@ -95,6 +95,35 @@ class CropImageView : AppCompatImageView {
         calculateViewportSize()
     }
 
+    fun centerCrop() {
+        center { a, b -> max(a, b) }
+    }
+
+    fun centerInside() {
+        center { a, b -> min(a, b) }
+    }
+
+    private inline fun center(crossinline action: (Float, Float) -> Float) {
+        val dWidth = drawableWidth?.toFloat()
+        val dHeight = drawableHeight?.toFloat()
+        val viewportWidth = viewportWidth?.toFloat()
+        val viewportHeight = viewportHeight?.toFloat()
+        val vWidth = width - paddingLeft - paddingRight
+        val vHeight = height - paddingTop - paddingBottom
+        if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
+            return
+        }
+        applyMatrixTransformation {
+            val rotation = it.getRotation()
+            val scale = checkMinScale(action(viewportWidth / dWidth, viewportHeight / dHeight), aspectRatio, rotation, dWidth, dHeight, viewportWidth, viewportHeight)
+            val tx = (vWidth - dWidth * scale) / 2f
+            val ty = (vHeight - dHeight * scale) / 2f
+            it.setScale(scale, scale)
+            it.postTranslate(tx, ty)
+            it.postRotate(rotation.toDegrees(), vWidth / 2f, vHeight / 2f)
+        }
+    }
+
     fun rotate(degrees: Float) {
         val vWidth = width - paddingLeft - paddingRight
         val vHeight = height - paddingTop - paddingBottom
@@ -269,13 +298,13 @@ class CropImageView : AppCompatImageView {
     }
 
     companion object {
-        private inline fun checkMinScale(scale: Float,
-                                         aspectRatio: ClosedFloatingPointRange<Float>,
-                                         rotation: Float,
-                                         drawableWidth: Float,
-                                         drawableHeight: Float,
-                                         viewportWidth: Float,
-                                         viewportHeight: Float): Float {
+        private fun checkMinScale(scale: Float,
+                                  aspectRatio: ClosedFloatingPointRange<Float>,
+                                  rotation: Float,
+                                  drawableWidth: Float,
+                                  drawableHeight: Float,
+                                  viewportWidth: Float,
+                                  viewportHeight: Float): Float {
             val dWidth: Float
             val dHeight: Float
             if (isNearTo90or270(rotation)) {
@@ -305,6 +334,14 @@ class CropImageView : AppCompatImageView {
 
 private fun Float.toDegrees(): Float {
     return Math.toDegrees(this.toDouble()).toFloat()
+}
+
+private fun Matrix.getRotation(): Float {
+    val values = FloatArray(9)
+    getValues(values)
+    val scale = sqrt(values[0] * values[0] + values[3] * values[3])
+    val acosTheta = acos(values[0] / scale)
+    return if (asin(values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
 }
 
 private fun Bitmap.crop(rect: Rect): Bitmap {

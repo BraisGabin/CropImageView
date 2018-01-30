@@ -13,6 +13,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val imageView: CropImageView = findViewById(R.id.imageView)
+        findViewById<View>(R.id.centerCrop).setOnClickListener {
+            imageView.centerCrop()
+        }
+
+        findViewById<View>(R.id.centerInside).setOnClickListener {
+            imageView.centerInside()
+        }
+
         findViewById<View>(R.id.rotate).setOnClickListener {
             imageView.rotate(90f)
         }
