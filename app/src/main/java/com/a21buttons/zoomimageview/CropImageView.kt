@@ -174,7 +174,7 @@ class CropImageView : AppCompatImageView {
         var tx = _values[2]
         var ty = _values[5]
 
-        scale = checkMinScale(scale, aspectRatio, dWidth, dHeight, viewportWidth, viewportHeight)
+        scale = checkMinScale(scale, aspectRatio, theta, dWidth, dHeight, viewportWidth, viewportHeight)
 
         val dScaledWidth = dWidth * scale
         val dScaledHeight = dHeight * scale
@@ -271,10 +271,20 @@ class CropImageView : AppCompatImageView {
     companion object {
         private inline fun checkMinScale(scale: Float,
                                          aspectRatio: ClosedFloatingPointRange<Float>,
-                                         dWidth: Float,
-                                         dHeight: Float,
+                                         rotation: Float,
+                                         drawableWidth: Float,
+                                         drawableHeight: Float,
                                          viewportWidth: Float,
                                          viewportHeight: Float): Float {
+            val dWidth: Float
+            val dHeight: Float
+            if (isNearTo90or270(rotation)) {
+                dWidth = drawableHeight
+                dHeight = drawableWidth
+            } else {
+                dWidth = drawableWidth
+                dHeight = drawableHeight
+            }
             return max(
                     max(
                             scale,
@@ -284,6 +294,11 @@ class CropImageView : AppCompatImageView {
                     min(
                             viewportWidth / dWidth,
                             viewportHeight / dHeight))
+        }
+
+        private fun isNearTo90or270(angle: Float): Boolean {
+            val angle45 = PI / 4
+            return (angle > angle45 && angle < 3 * angle45) || (angle > 5 * angle45 && angle < 7 * angle45)
         }
     }
 }
