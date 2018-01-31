@@ -151,11 +151,11 @@ class CropImageView : AppCompatImageView {
     }
 
     fun centerCrop() {
-        center { a, b -> max(a, b) }
+        center(Math::max)
     }
 
     fun centerInside() {
-        center { a, b -> min(a, b) }
+        center(Math::min)
     }
 
     private inline fun center(crossinline action: (Float, Float) -> Float) {
