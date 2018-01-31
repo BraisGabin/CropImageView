@@ -152,6 +152,7 @@ class CropImageView : AppCompatImageView {
         val vHeight = height - paddingTop - paddingBottom
         applyMatrixTransformation {
             it.postRotate(degrees, vWidth / 2f, vHeight / 2f)
+            checkLimits(it)
         }
     }
 
@@ -164,6 +165,7 @@ class CropImageView : AppCompatImageView {
             applyMatrixTransformation {
                 val scaleFactor = detector.scaleFactor
                 it.postScale(scaleFactor, scaleFactor, detector.focusX, detector.focusY)
+                checkLimits(it)
             }
             return true
         }
@@ -192,14 +194,32 @@ class CropImageView : AppCompatImageView {
         }
 
         override fun onScroll(e1: MotionEvent, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-            applyMatrixTransformation { it.postTranslate(-distanceX, -distanceY) }
+            applyMatrixTransformation {
+                it.postTranslate(-distanceX, -distanceY)
+                checkLimits(it)
+            }
             return true
         }
     }
 
     private val _matrix = Matrix()
-    private val _values: FloatArray = FloatArray(9)
     private fun applyMatrixTransformation(action: (Matrix) -> Unit) {
+        val dWidth = drawableWidth?.toFloat()
+        val dHeight = drawableHeight?.toFloat()
+        val viewportWidth = viewportWidth?.toFloat()
+        val viewportHeight = viewportHeight?.toFloat()
+        if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
+            return
+        }
+        _matrix.set(imageMatrix)
+
+        action(_matrix)
+
+        imageMatrix = _matrix
+    }
+
+    private val _values: FloatArray = FloatArray(9)
+    private fun checkLimits(matrix: Matrix) {
         val dWidth = drawableWidth?.toFloat()
         val dHeight = drawableHeight?.toFloat()
         val viewportWidth = viewportWidth?.toFloat()
@@ -209,20 +229,17 @@ class CropImageView : AppCompatImageView {
         if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return
         }
-        _matrix.set(imageMatrix)
 
-        action(_matrix)
-
-        _matrix.getValues(_values)
+        matrix.getValues(_values)
         var scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
         val acosTheta = acos(_values[0] / scale)
         val theta = if (asin(_values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
         val degrees = theta.toDegrees()
         val px = vWidth / 2f
         val py = vHeight / 2f
-        _matrix.postRotate(-degrees, px, py)
+        matrix.postRotate(-degrees, px, py)
 
-        _matrix.getValues(_values)
+        matrix.getValues(_values)
 
         scale = checkMinScale(scale, aspectRatio, theta, dWidth, dHeight, viewportWidth, viewportHeight)
 
@@ -232,11 +249,9 @@ class CropImageView : AppCompatImageView {
         val tx = calculateTranslation(_values[2], dScaledWidth, vWidth, viewportWidth)
         val ty = calculateTranslation(_values[5], dScaledHeight, vHeight, viewportHeight)
 
-        _matrix.setScale(scale, scale)
-        _matrix.postTranslate(tx, ty)
-        _matrix.postRotate(degrees, px, py)
-
-        imageMatrix = _matrix
+        matrix.setScale(scale, scale)
+        matrix.postTranslate(tx, ty)
+        matrix.postRotate(degrees, px, py)
     }
 
     private fun calculateViewportSize() {
