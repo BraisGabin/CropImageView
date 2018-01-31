@@ -87,6 +87,7 @@ class CropImageView : AppCompatImageView {
         super.setImageDrawable(drawable)
         drawableWidth = drawable?.intrinsicWidth
         drawableHeight = drawable?.intrinsicHeight
+        applyMatrixTransformation { checkLimits(it) }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
