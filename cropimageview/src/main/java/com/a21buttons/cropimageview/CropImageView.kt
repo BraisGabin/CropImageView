@@ -57,7 +57,7 @@ class CropImageView : AppCompatImageView {
         }
     }
 
-    var aspectRatio: ClosedFloatingPointRange<Float> = 0.8f.rangeTo(1f)
+    var aspectRatio: ClosedFloatingPointRange<Float> = Float.MIN_VALUE.rangeTo(Float.MAX_VALUE)
         set(value) {
             if (value.isEmpty()) {
                 throw IllegalArgumentException("The aspect ratio range can't be empty")
