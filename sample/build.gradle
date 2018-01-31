@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.a21buttons.zoomimageview.sample"
+        applicationId "com.a21buttons.cropimageview.sample"
         minSdkVersion 14
         targetSdkVersion 26
         versionCode 1

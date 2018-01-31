@@ -1,11 +1,11 @@
-package com.a21buttons.zoomimageview.sample
+package com.a21buttons.cropimageview.sample
 
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.ImageView
-import com.a21buttons.zoomimageview.CropImageView
+import com.a21buttons.cropimageview.CropImageView
 
 class MainActivity : AppCompatActivity() {
 

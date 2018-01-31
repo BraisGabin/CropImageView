@@ -1,4 +1,4 @@
-package com.a21buttons.zoomimageview.sample
+package com.a21buttons.cropimageview.sample
 
 import org.junit.Test
 

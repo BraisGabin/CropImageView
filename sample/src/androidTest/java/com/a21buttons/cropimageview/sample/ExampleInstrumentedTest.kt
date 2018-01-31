@@ -1,4 +1,4 @@
-package com.a21buttons.zoomimageview.sample
+package com.a21buttons.cropimageview.sample
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("com.a21buttons.zoomimageview.sample", appContext.packageName)
+        assertEquals("com.a21buttons.cropimageview.sample", appContext.packageName)
     }
 }
