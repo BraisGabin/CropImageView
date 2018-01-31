@@ -63,8 +63,9 @@ class CropImageView : AppCompatImageView {
                 throw IllegalArgumentException("The range can't be empty")
             }
             if (field != value) {
-                calculateViewportSize()
                 field = value
+                calculateViewportSize()
+                applyMatrixTransformation { checkLimits(it) }
                 invalidate()
             }
         }
