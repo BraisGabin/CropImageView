@@ -117,6 +117,7 @@ class CropImageView : AppCompatImageView {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         calculateViewportSize()
+        applyMatrixTransformation { checkLimits(it) }
     }
 
     fun centerCrop() {
