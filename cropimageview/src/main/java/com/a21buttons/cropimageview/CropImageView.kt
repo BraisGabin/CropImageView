@@ -1,6 +1,7 @@
 package com.a21buttons.cropimageview
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
@@ -8,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.support.annotation.StyleableRes
 import android.support.v7.widget.AppCompatImageView
 import android.util.AttributeSet
 import android.view.GestureDetector
@@ -52,6 +54,30 @@ class CropImageView : AppCompatImageView {
         val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.CropImageView, 0, 0)
         try {
             viewportPaint.color = typedArray.getColor(R.styleable.CropImageView_viewportOverlayColor, 0x80000000.toInt())
+
+            val aspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_aspectRatio, "aspectRatio")
+            val minAspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_minAspectRatio, "minAspectRatio")
+            val maxAspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_maxAspectRatio, "maxAspectRatio")
+            when {
+                aspectRatio != null && (minAspectRatio != null || maxAspectRatio != null) -> {
+                    throw IllegalArgumentException("Don't set aspectRatio and min/maxAspectRatio at the same time")
+                }
+                aspectRatio != null -> {
+                    this.aspectRatio = aspectRatio.rangeTo(aspectRatio)
+                }
+                minAspectRatio != null && maxAspectRatio != null -> {
+                    if (minAspectRatio > maxAspectRatio) {
+                        throw IllegalArgumentException("minAspectRatio must be smaller than maxAspectRatio")
+                    }
+                    this.aspectRatio = minAspectRatio.rangeTo(maxAspectRatio)
+                }
+                minAspectRatio != null -> {
+                    this.aspectRatio = minAspectRatio.rangeTo(Float.MAX_VALUE)
+                }
+                maxAspectRatio != null -> {
+                    this.aspectRatio = Float.MIN_VALUE.rangeTo(maxAspectRatio)
+                }
+            }
         } finally {
             typedArray.recycle()
         }
@@ -371,6 +397,18 @@ class CropImageView : AppCompatImageView {
             val angle45 = PI / 4
             return (angle > angle45 && angle < 3 * angle45) || (angle > 5 * angle45 && angle < 7 * angle45)
         }
+    }
+}
+
+private fun TypedArray.getAspectRatio(@StyleableRes id: Int, name: String): Float? {
+    return if (this.hasValue(id)) {
+        val aspectRatio = this.getFloat(id, -1f)
+        if (aspectRatio <= 0) {
+            throw IllegalArgumentException("$name must be a positive number.")
+        }
+        aspectRatio
+    } else {
+        null
     }
 }
 

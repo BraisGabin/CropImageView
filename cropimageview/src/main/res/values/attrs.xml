@@ -2,5 +2,8 @@
 <resources>
     <declare-styleable name="CropImageView">
         <attr name="viewportOverlayColor" format="color" />
+        <attr name="aspectRatio" format="float" />
+        <attr name="minAspectRatio" format="float" />
+        <attr name="maxAspectRatio" format="float" />
     </declare-styleable>
 </resources>

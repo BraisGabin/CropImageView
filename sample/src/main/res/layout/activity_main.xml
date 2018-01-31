@@ -9,6 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/nature"
+        app:maxAspectRatio="1"
+        app:minAspectRatio="0.8"
         app:viewportOverlayColor="#80ff0000" />
 
     <Button
