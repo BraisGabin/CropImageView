@@ -13,21 +13,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val imageView: CropImageView = findViewById(R.id.imageView)
+        val cropImageView: CropImageView = findViewById(R.id.imageView)
         findViewById<View>(R.id.centerCrop).setOnClickListener {
-            imageView.centerCrop()
+            cropImageView.centerCrop()
         }
 
         findViewById<View>(R.id.centerInside).setOnClickListener {
-            imageView.centerInside()
+            cropImageView.centerInside()
         }
 
         findViewById<View>(R.id.rotate).setOnClickListener {
-            imageView.rotate(90f)
+            cropImageView.rotate(90f)
         }
 
         findViewById<View>(R.id.crop).setOnClickListener {
-            val bitmap = imageView.getCoppedBitmap()()
+            val bitmap = cropImageView.getCoppedBitmap()()
             if (bitmap != null) {
                 val imageView = ImageView(this)
                 imageView.setImageBitmap(bitmap)

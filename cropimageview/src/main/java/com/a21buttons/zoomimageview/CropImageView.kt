@@ -287,7 +287,7 @@ class CropImageView : AppCompatImageView {
         this.viewportHeight = viewportHeight
     }
 
-    private inline fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Float, viewportSize: Float): Float {
+    private fun calculateTranslation(translation: Float, dScaledSize: Float, vSize: Float, viewportSize: Float): Float {
         return if (dScaledSize < viewportSize) {
             (vSize - dScaledSize) / 2f
         } else {
