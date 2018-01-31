@@ -223,16 +223,14 @@ class CropImageView : AppCompatImageView {
         _matrix.postRotate(-degrees, px, py)
 
         _matrix.getValues(_values)
-        var tx = _values[2]
-        var ty = _values[5]
 
         scale = checkMinScale(scale, aspectRatio, theta, dWidth, dHeight, viewportWidth, viewportHeight)
 
         val dScaledWidth = dWidth * scale
         val dScaledHeight = dHeight * scale
 
-        tx = calculateTranslation(tx, dScaledWidth, vWidth, viewportWidth)
-        ty = calculateTranslation(ty, dScaledHeight, vHeight, viewportHeight)
+        val tx = calculateTranslation(_values[2], dScaledWidth, vWidth, viewportWidth)
+        val ty = calculateTranslation(_values[5], dScaledHeight, vHeight, viewportHeight)
 
         _matrix.setScale(scale, scale)
         _matrix.postTranslate(tx, ty)
