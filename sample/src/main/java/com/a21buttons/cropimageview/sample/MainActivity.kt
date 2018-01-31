@@ -5,6 +5,7 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import com.a21buttons.cropimageview.CropImageView
 
 class MainActivity : AppCompatActivity() {
@@ -15,10 +16,16 @@ class MainActivity : AppCompatActivity() {
 
         val cropImageView: CropImageView = findViewById(R.id.imageView)
         findViewById<View>(R.id.centerCrop).setOnClickListener {
+            if (cropImageView.isCenteredCrop) {
+                Toast.makeText(this, "isCenteredCrop", Toast.LENGTH_SHORT).show()
+            }
             cropImageView.centerCrop()
         }
 
         findViewById<View>(R.id.centerInside).setOnClickListener {
+            if (cropImageView.isCenteredInside) {
+                Toast.makeText(this, "isCenteredInside", Toast.LENGTH_SHORT).show()
+            }
             cropImageView.centerInside()
         }
 

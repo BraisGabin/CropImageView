@@ -108,6 +108,24 @@ class CropImageView : AppCompatImageView {
             }
         }
 
+    var isCenteredCrop: Boolean = false
+        get() {
+            val imageMatrix = imageMatrix
+            _matrix.set(imageMatrix)
+            centerCrop(_matrix)
+            return imageMatrix == _matrix
+        }
+        private set
+
+    var isCenteredInside: Boolean = false
+        get() {
+            val imageMatrix = imageMatrix
+            _matrix.set(imageMatrix)
+            centerInside(_matrix)
+            return imageMatrix == _matrix
+        }
+        private set
+
     override fun setScaleType(scaleType: ScaleType) {
         // no-op
     }
@@ -151,14 +169,26 @@ class CropImageView : AppCompatImageView {
     }
 
     fun centerCrop() {
-        center(Math::max)
+        applyMatrixTransformation {
+            centerCrop(it)
+        }
+    }
+
+    private fun centerCrop(matrix: Matrix) {
+        center(matrix, Math::max)
     }
 
     fun centerInside() {
-        center(Math::min)
+        applyMatrixTransformation {
+            centerInside(it)
+        }
     }
 
-    private inline fun center(crossinline action: (Float, Float) -> Float) {
+    private fun centerInside(matrix: Matrix) {
+        center(matrix, Math::min)
+    }
+
+    private fun center(matrix: Matrix, action: (Float, Float) -> Float) {
         val dWidth = drawableWidth?.toFloat()
         val dHeight = drawableHeight?.toFloat()
         val viewportWidth = viewportWidth?.toFloat()
@@ -168,15 +198,14 @@ class CropImageView : AppCompatImageView {
         if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return
         }
-        applyMatrixTransformation {
-            val rotation = it.getRotation()
-            val scale = checkMinScale(action(viewportWidth / dWidth, viewportHeight / dHeight), aspectRatio, rotation, dWidth, dHeight, viewportWidth, viewportHeight)
-            val tx = (vWidth - dWidth * scale) / 2f
-            val ty = (vHeight - dHeight * scale) / 2f
-            it.setScale(scale, scale)
-            it.postTranslate(tx, ty)
-            it.postRotate(rotation.toDegrees(), vWidth / 2f, vHeight / 2f)
-        }
+        val rotation = matrix.getRotation()
+        val scale = checkMinScale(action(viewportWidth / dWidth, viewportHeight / dHeight), aspectRatio, rotation, dWidth, dHeight, viewportWidth, viewportHeight)
+        val tx = (vWidth - dWidth * scale) / 2f
+        val ty = (vHeight - dHeight * scale) / 2f
+
+        matrix.setScale(scale, scale)
+        matrix.postTranslate(tx, ty)
+        matrix.postRotate(rotation.toDegrees(), vWidth / 2f, vHeight / 2f)
     }
 
     fun rotate(degrees: Float) {
