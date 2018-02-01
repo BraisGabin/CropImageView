@@ -355,7 +355,7 @@ class CropImageView : AppCompatImageView {
         }
     }
 
-    fun getCoppedBitmap(): () -> Bitmap? {
+    fun getCroppedBitmap(): () -> Bitmap? {
         val rect = croppedRect()
         return if (rect == null) {
             { null }

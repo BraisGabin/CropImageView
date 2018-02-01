@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.crop).setOnClickListener {
-            val bitmap = cropImageView.getCoppedBitmap()()
+            val bitmap = cropImageView.getCroppedBitmap()()
             if (bitmap != null) {
                 val imageView = ImageView(this)
                 imageView.setImageBitmap(bitmap)
