@@ -208,6 +208,15 @@ class CropImageView : AppCompatImageView {
         matrix.postRotate(rotation.toDegrees(), vWidth / 2f, vHeight / 2f)
     }
 
+    var imageRotation: Float
+        get() = imageMatrix.getRotation().toDegrees()
+        set(value) {
+            val degrees = (value - imageMatrix.getRotation().toDegrees()) % 360f
+            if (degrees != 0f) {
+                rotate(degrees)
+            }
+        }
+
     fun rotate(degrees: Float) {
         val vWidth = width - paddingLeft - paddingRight
         val vHeight = height - paddingTop - paddingBottom
