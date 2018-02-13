@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.support.annotation.StyleableRes
@@ -379,7 +379,7 @@ class CropImageView : AppCompatImageView {
         }
     }
 
-    private fun croppedRect(): Rect? {
+    fun croppedRect(): RectF? {
         val dWidth = drawableWidth?.toFloat()
         val dHeight = drawableHeight?.toFloat()
         val viewportWidth = viewportWidth?.toFloat()
@@ -395,12 +395,12 @@ class CropImageView : AppCompatImageView {
         val right = left + min(dWidth, viewportWidth / scale)
         val bottom = top + min(dHeight, viewportHeight / scale)
 
-        val x = max(0f, left).roundToInt()
-        val y = max(0f, top).roundToInt()
-        val x2 = min(dWidth, right).roundToInt()
-        val y2 = min(dHeight, bottom).roundToInt()
+        val x = max(0f, left)
+        val y = max(0f, top)
+        val x2 = min(dWidth, right)
+        val y2 = min(dHeight, bottom)
 
-        return Rect(x, y, x2, y2)
+        return RectF(x / dWidth, y / dHeight, x2 / dWidth, y2 / dHeight)
     }
 
     companion object {
@@ -462,6 +462,12 @@ private fun Matrix.getRotation(): Float {
     return if (asin(values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
 }
 
-private fun Bitmap.crop(rect: Rect): Bitmap {
-    return Bitmap.createBitmap(this, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+private fun Bitmap.crop(rect: RectF): Bitmap {
+    val width = width
+    val height = height
+    val left = rect.left * width
+    val top = rect.top * height
+    val right = rect.right * width
+    val bottom = rect.bottom * height
+    return Bitmap.createBitmap(this, left.roundToInt(), top.roundToInt(), (right - left).roundToInt(), (bottom - top).roundToInt())
 }
