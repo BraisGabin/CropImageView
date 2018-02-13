@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 0.0.3 *(2018-02-11)*
+----------------------------
+
+- Fix typo in `CropImageView.getCroppedBitmap`
+- Implement property `imageRotation`
+- Allow to retrieve the croppedRect in relative values
+
 Version 0.0.2 *(2018-01-31)*
 ----------------------------
 
