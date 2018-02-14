@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.0.3 *(2018-02-11)*
+Version 0.0.3 *(2018-02-13)*
 ----------------------------
 
 - Fix typo in `CropImageView.getCroppedBitmap`
