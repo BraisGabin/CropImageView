@@ -241,10 +241,28 @@ class CropImageView : AppCompatImageView {
         }
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            applyMatrixTransformation {
-                val scaleFactor = detector.scaleFactor
-                it.postScale(scaleFactor, scaleFactor, detector.focusX, detector.focusY)
-                checkLimits(it)
+            val dWidth = drawableWidth?.toFloat()
+            val dHeight = drawableHeight?.toFloat()
+            val viewportWidth = viewportWidth?.toFloat()
+            val viewportHeight = viewportHeight?.toFloat()
+            if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
+                return true
+            }
+            var scaleFactor = detector.scaleFactor
+            val scale = imageMatrix.getScale(_values)
+            val theta = imageMatrix.getRotation(_values)
+            var desiredScale = scale * scaleFactor
+
+            maxScale?.let { desiredScale = min(it, desiredScale) }
+            desiredScale = checkMinScale(desiredScale, aspectRatio, theta, dWidth, dHeight, viewportWidth, viewportHeight)
+
+            scaleFactor = desiredScale / scale
+
+            if (scaleFactor != 1f) {
+                applyMatrixTransformation {
+                    it.postScale(scaleFactor, scaleFactor, detector.focusX, detector.focusY)
+                    checkLimits(it)
+                }
             }
             return true
         }
@@ -464,12 +482,16 @@ private fun Float.toDegrees(): Float {
     return Math.toDegrees(this.toDouble()).toFloat()
 }
 
-private fun Matrix.getRotation(): Float {
-    val values = FloatArray(9)
+private fun Matrix.getRotation(values: FloatArray = FloatArray(9)): Float {
     getValues(values)
     val scale = sqrt(values[0] * values[0] + values[3] * values[3])
     val acosTheta = acos(values[0] / scale)
     return if (asin(values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
+}
+
+private fun Matrix.getScale(values: FloatArray = FloatArray(9)): Float {
+    getValues(values)
+    return sqrt(values[0] * values[0] + values[3] * values[3])
 }
 
 private fun Bitmap.crop(rect: RectF): Bitmap {
