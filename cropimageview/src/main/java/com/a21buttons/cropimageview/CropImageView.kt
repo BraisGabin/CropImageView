@@ -55,9 +55,9 @@ class CropImageView : AppCompatImageView {
         try {
             viewportPaint.color = typedArray.getColor(R.styleable.CropImageView_viewportOverlayColor, 0x80000000.toInt())
 
-            val aspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_aspectRatio, "aspectRatio")
-            val minAspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_minAspectRatio, "minAspectRatio")
-            val maxAspectRatio = typedArray.getAspectRatio(R.styleable.CropImageView_maxAspectRatio, "maxAspectRatio")
+            val aspectRatio = typedArray.getPositiveFloat(R.styleable.CropImageView_aspectRatio, "aspectRatio")
+            val minAspectRatio = typedArray.getPositiveFloat(R.styleable.CropImageView_minAspectRatio, "minAspectRatio")
+            val maxAspectRatio = typedArray.getPositiveFloat(R.styleable.CropImageView_maxAspectRatio, "maxAspectRatio")
             when {
                 aspectRatio != null && (minAspectRatio != null || maxAspectRatio != null) -> {
                     throw IllegalArgumentException("Don't set aspectRatio and min/maxAspectRatio at the same time")
@@ -78,6 +78,8 @@ class CropImageView : AppCompatImageView {
                     this.aspectRatio = Float.MIN_VALUE.rangeTo(maxAspectRatio)
                 }
             }
+
+            maxScale = typedArray.getPositiveFloat(R.styleable.CropImageView_maxScale, "maxScale")
         } finally {
             typedArray.recycle()
         }
@@ -466,13 +468,13 @@ class CropImageView : AppCompatImageView {
     }
 }
 
-private fun TypedArray.getAspectRatio(@StyleableRes id: Int, name: String): Float? {
+private fun TypedArray.getPositiveFloat(@StyleableRes id: Int, name: String): Float? {
     return if (this.hasValue(id)) {
-        val aspectRatio = this.getFloat(id, -1f)
-        if (aspectRatio <= 0) {
+        val value = this.getFloat(id, -1f)
+        if (value <= 0) {
             throw IllegalArgumentException("$name must be a positive number.")
         }
-        aspectRatio
+        value
     } else {
         null
     }

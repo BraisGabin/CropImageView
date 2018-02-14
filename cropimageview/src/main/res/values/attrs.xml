@@ -5,5 +5,6 @@
         <attr name="aspectRatio" format="float" />
         <attr name="minAspectRatio" format="float" />
         <attr name="maxAspectRatio" format="float" />
+        <attr name="maxScale" format="float" />
     </declare-styleable>
 </resources>
