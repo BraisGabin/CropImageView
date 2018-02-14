@@ -208,6 +208,15 @@ class CropImageView : AppCompatImageView {
         matrix.postRotate(rotation.toDegrees(), vWidth / 2f, vHeight / 2f)
     }
 
+    var maxScale: Float? = null
+        set(value) {
+            if (value != null && value <= 0f) {
+                throw IllegalArgumentException("maxScale must be a positive number. $value provided")
+            }
+            field = value
+            applyMatrixTransformation { checkLimits(it) }
+        }
+
     var imageRotation: Float
         get() = imageMatrix.getRotation().toDegrees()
         set(value) {
@@ -311,6 +320,7 @@ class CropImageView : AppCompatImageView {
 
         matrix.getValues(_values)
 
+        maxScale?.let { scale = min(it, scale) }
         scale = checkMinScale(scale, aspectRatio, theta, dWidth, dHeight, viewportWidth, viewportHeight)
 
         val dScaledWidth = dWidth * scale
