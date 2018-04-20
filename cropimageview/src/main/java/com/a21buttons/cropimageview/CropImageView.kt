@@ -432,40 +432,38 @@ class CropImageView : AppCompatImageView {
 
         return RectF(x / dWidth, y / dHeight, x2 / dWidth, y2 / dHeight)
     }
+}
 
-    companion object {
-        private fun checkMinScale(scale: Float,
-                                  aspectRatio: ClosedFloatingPointRange<Float>,
-                                  rotation: Float,
-                                  drawableWidth: Float,
-                                  drawableHeight: Float,
-                                  viewportWidth: Float,
-                                  viewportHeight: Float): Float {
-            val dWidth: Float
-            val dHeight: Float
-            if (isNearTo90or270(rotation)) {
-                dWidth = drawableHeight
-                dHeight = drawableWidth
-            } else {
-                dWidth = drawableWidth
-                dHeight = drawableHeight
-            }
-            return max(
-                    max(
-                            scale,
-                            max(
-                                    aspectRatio.start * viewportHeight / dWidth,
-                                    viewportWidth / (aspectRatio.endInclusive * dHeight))),
-                    min(
-                            viewportWidth / dWidth,
-                            viewportHeight / dHeight))
-        }
-
-        private fun isNearTo90or270(angle: Float): Boolean {
-            val angle45 = PI / 4
-            return (angle > angle45 && angle < 3 * angle45) || (angle > 5 * angle45 && angle < 7 * angle45)
-        }
+private fun checkMinScale(scale: Float,
+                          aspectRatio: ClosedFloatingPointRange<Float>,
+                          rotation: Float,
+                          drawableWidth: Float,
+                          drawableHeight: Float,
+                          viewportWidth: Float,
+                          viewportHeight: Float): Float {
+    val dWidth: Float
+    val dHeight: Float
+    if (isNearTo90or270(rotation)) {
+        dWidth = drawableHeight
+        dHeight = drawableWidth
+    } else {
+        dWidth = drawableWidth
+        dHeight = drawableHeight
     }
+    return max(
+            max(
+                    scale,
+                    max(
+                            aspectRatio.start * viewportHeight / dWidth,
+                            viewportWidth / (aspectRatio.endInclusive * dHeight))),
+            min(
+                    viewportWidth / dWidth,
+                    viewportHeight / dHeight))
+}
+
+private fun isNearTo90or270(angle: Float): Boolean {
+    val angle45 = PI / 4
+    return (angle > angle45 && angle < 3 * angle45) || (angle > 5 * angle45 && angle < 7 * angle45)
 }
 
 private fun TypedArray.getPositiveFloat(@StyleableRes id: Int, name: String): Float? {
