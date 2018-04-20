@@ -251,8 +251,9 @@ class CropImageView : AppCompatImageView {
                 return true
             }
             var scaleFactor = detector.scaleFactor
-            val scale = imageMatrix.getScale(_values)
-            val theta = imageMatrix.getRotation(_values)
+            imageMatrix.getValues(_values)
+            val scale = _values.getScale()
+            val theta = _values.getRotation(scale)
             var desiredScale = scale * scaleFactor
 
             maxScale?.let { desiredScale = min(it, desiredScale) }
@@ -330,9 +331,8 @@ class CropImageView : AppCompatImageView {
         }
 
         matrix.getValues(_values)
-        var scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
-        val acosTheta = acos(_values[0] / scale)
-        val theta = if (asin(_values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
+        var scale = _values.getScale()
+        val theta = _values.getRotation(scale)
         val degrees = theta.toDegrees()
         val px = vWidth / 2f
         val py = vHeight / 2f
@@ -418,7 +418,7 @@ class CropImageView : AppCompatImageView {
             return null
         }
         imageMatrix.getValues(_values)
-        val scale = sqrt(_values[0] * _values[0] + _values[3] * _values[3])
+        val scale = _values.getScale()
 
         val left = -min(0f, (_values[2] - (width - viewportWidth) / 2) / scale)
         val top = -min(0f, (_values[5] - (height - viewportHeight) / 2) / scale)
@@ -482,16 +482,18 @@ private fun Float.toDegrees(): Float {
     return Math.toDegrees(this.toDouble()).toFloat()
 }
 
-private fun Matrix.getRotation(values: FloatArray = FloatArray(9)): Float {
-    getValues(values)
-    val scale = sqrt(values[0] * values[0] + values[3] * values[3])
-    val acosTheta = acos(values[0] / scale)
-    return if (asin(values[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
+private fun Matrix.getRotation(): Float {
+    val values = FloatArray(9).apply { getValues(this) }
+    return values.getRotation()
 }
 
-private fun Matrix.getScale(values: FloatArray = FloatArray(9)): Float {
-    getValues(values)
-    return sqrt(values[0] * values[0] + values[3] * values[3])
+private fun FloatArray.getRotation(scale: Float = this.getScale()): Float {
+    val acosTheta = acos(this[0] / scale)
+    return if (asin(this[3] / scale) >= -0f) acosTheta else 2 * PI.toFloat() - acosTheta
+}
+
+private fun FloatArray.getScale(): Float {
+    return sqrt(this[0] * this[0] + this[3] * this[3])
 }
 
 private fun Bitmap.crop(rect: RectF): Bitmap {
