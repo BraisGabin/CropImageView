@@ -3,7 +3,7 @@
 ## Download
 
 ```gradle
-implementation 'com.21buttons:crop-image-view:0.0.4'
+implementation 'com.21buttons:crop-image-view:0.0.5'
 ```
 
 ## Usage

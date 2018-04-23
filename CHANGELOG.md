@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.0.5 *(2018-04-23)*
+----------------------------
+
+- Fix a bug related with the rotations in `CropImageView.croppedRect`
+
 Version 0.0.4 *(2018-02-14)*
 ----------------------------
 
