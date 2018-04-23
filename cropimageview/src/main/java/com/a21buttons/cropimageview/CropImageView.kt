@@ -346,8 +346,8 @@ class CropImageView : AppCompatImageView {
         val dScaledWidth = dWidth * scale
         val dScaledHeight = dHeight * scale
 
-        val tx = calculateTranslation(_values[2], dScaledWidth, vWidth, viewportWidth)
-        val ty = calculateTranslation(_values[5], dScaledHeight, vHeight, viewportHeight)
+        val tx = calculateTranslation(_values.translationX, dScaledWidth, vWidth, viewportWidth)
+        val ty = calculateTranslation(_values.translationY, dScaledHeight, vHeight, viewportHeight)
 
         matrix.setScale(scale, scale)
         matrix.postTranslate(tx, ty)
@@ -420,8 +420,8 @@ class CropImageView : AppCompatImageView {
         imageMatrix.getValues(_values)
         val scale = _values.getScale()
 
-        val left = -min(0f, (_values[2] - (width - viewportWidth) / 2) / scale)
-        val top = -min(0f, (_values[5] - (height - viewportHeight) / 2) / scale)
+        val left = -min(0f, (_values.translationX - (width - viewportWidth) / 2) / scale)
+        val top = -min(0f, (_values.translationY - (height - viewportHeight) / 2) / scale)
         val right = left + min(dWidth, viewportWidth / scale)
         val bottom = top + min(dHeight, viewportHeight / scale)
 
@@ -495,6 +495,12 @@ private fun FloatArray.getRotation(scale: Float = this.getScale()): Float {
 private fun FloatArray.getScale(): Float {
     return sqrt(this[0] * this[0] + this[3] * this[3])
 }
+
+private inline val FloatArray.translationX: Float
+    get() = this[2]
+
+private inline val FloatArray.translationY: Float
+    get() = this[5]
 
 private fun Bitmap.crop(rect: RectF): Bitmap {
     val width = width
