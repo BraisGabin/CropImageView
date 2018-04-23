@@ -396,13 +396,14 @@ class CropImageView : AppCompatImageView {
 
     fun getCroppedBitmap(): () -> Bitmap? {
         val rect = croppedRect()
+        val rotation = imageMatrix.getRotation().toDegrees()
         return if (rect == null) {
             { null }
         } else {
             val d = drawable
             {
                 when (d) {
-                    is BitmapDrawable -> d.bitmap.crop(rect)
+                    is BitmapDrawable -> d.bitmap.crop(rect, rotation)
                     else -> throw RuntimeException("Not supported drawable")
                 }
             }
@@ -417,7 +418,14 @@ class CropImageView : AppCompatImageView {
         if (dWidth == null || dHeight == null || viewportWidth == null || viewportHeight == null) {
             return null
         }
-        imageMatrix.getValues(_values)
+
+        Matrix().apply {
+            val vWidth = width - paddingLeft - paddingRight
+            val vHeight = height - paddingTop - paddingBottom
+            val degrees = imageMatrix.getRotation().toDegrees()
+            set(imageMatrix)
+            postRotate(-degrees, vWidth / 2f, vHeight / 2f)
+        }.getValues(_values)
         val scale = _values.scale
 
         val left = -min(0f, (_values.translationX - (width - viewportWidth) / 2) / scale)
@@ -501,12 +509,15 @@ private inline val FloatArray.translationX: Float
 private inline val FloatArray.translationY: Float
     get() = this[5]
 
-private fun Bitmap.crop(rect: RectF): Bitmap {
-    val width = width
-    val height = height
-    val left = rect.left * width
-    val top = rect.top * height
-    val right = rect.right * width
-    val bottom = rect.bottom * height
-    return Bitmap.createBitmap(this, left.roundToInt(), top.roundToInt(), (right - left).roundToInt(), (bottom - top).roundToInt())
+private fun Bitmap.crop(rect: RectF, rotation: Float): Bitmap {
+    val bitmapWidth = width
+    val bitmapHeight = height
+    val left = rect.left * bitmapWidth
+    val top = rect.top * bitmapHeight
+    val width = rect.right * bitmapWidth - left
+    val height = rect.bottom * bitmapHeight - top
+    val matrix = Matrix().apply {
+        postRotate(rotation, bitmapWidth / 2f, bitmapHeight / 2f)
+    }
+    return Bitmap.createBitmap(this, left.roundToInt(), top.roundToInt(), width.roundToInt(), height.roundToInt(), matrix, true)
 }
